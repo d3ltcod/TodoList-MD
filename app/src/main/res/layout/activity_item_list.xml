@@ -17,7 +17,8 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            app:popupTheme="@style/AppTheme.PopupOverlay" />
+            app:popupTheme="@style/AppTheme.PopupOverlay"
+            android:background="@color/red"/>
 
     </android.support.design.widget.AppBarLayout>
 
@@ -31,12 +32,33 @@
     </FrameLayout>
 
     <android.support.design.widget.FloatingActionButton
-        android:id="@+id/fab"
+        android:id="@+id/fabadd"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_margin="@dimen/fab_margin"
-        android:src="@android:drawable/ic_dialog_email" />
+        android:src="@drawable/ic_add_white_24dp"
+        app:backgroundTint="@color/red"
+        android:onClick="showAddForm"/>
+
+    <Space
+        android:id="@+id/space"
+        android:layout_width="wrap_content"
+        android:layout_height="10dp"
+        app:layout_anchor="@id/fabadd"
+        android:layout_gravity="top|end"
+        app:layout_anchorGravity="top"/>
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fabremove"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|end"
+        android:src="@drawable/ic_remove_white_36dp"
+        app:backgroundTint="@color/red"
+        app:layout_anchor="@id/space"
+        app:layout_anchorGravity="top"
+        android:onClick="removeTask"/>
 
 
 </android.support.design.widget.CoordinatorLayout>
