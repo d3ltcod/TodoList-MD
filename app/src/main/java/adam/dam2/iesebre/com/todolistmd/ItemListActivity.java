@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.support.design.widget.FloatingActionButton;
@@ -55,13 +54,6 @@ public class ItemListActivity extends AppCompatActivity {
         });
 
         FloatingActionButton fabadd = (FloatingActionButton) findViewById(R.id.fabadd);
-        fabadd.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Add", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
 
         View recyclerView = findViewById(R.id.item_list);
         assert recyclerView != null;
@@ -139,7 +131,7 @@ public class ItemListActivity extends AppCompatActivity {
                 super(view);
                 mView = view;
                 mIdView = (TextView) view.findViewById(R.id.id);
-                mContentView = (TextView) view.findViewById(R.id.content);
+                mContentView = (TextView) view.findViewById(R.id.todoListItemText);
             }
 
             @Override

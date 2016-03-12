@@ -51,6 +51,7 @@
         android:src="@android:drawable/ic_menu_edit"
         app:backgroundTint="@color/white"
         app:layout_anchor="@+id/item_detail_container"
-        app:layout_anchorGravity="top|end" />
+        app:layout_anchorGravity="top|end"
+        android:onClick="editTask"/>
 
 </android.support.design.widget.CoordinatorLayout>
