@@ -55,8 +55,6 @@ public class ItemListActivity extends AppCompatActivity {
     public static boolean mTwoPane;
     public static final List<TodoItem> ITEMS = new ArrayList<TodoItem>();
     public static final Map<String, TodoItem> ITEM_MAP = new HashMap<String, TodoItem>();
-    private static final String SHARED_PREFERENCES_TODOS = "SP_TODOS";
-    private static final String TODO_LIST = "todo_list";
     private View positiveAction;
     private String taskName;
     private String taskDescription;
@@ -64,10 +62,6 @@ public class ItemListActivity extends AppCompatActivity {
     private Gson gson;
     private ListAdapter adapter;
     private SwipeRefreshLayout swipeContainer;
-    private String todoList;
-    private SharedPreferences todosSharedPreference;
-    private NetworkInfo networkInfo;
-    private boolean networkInfoWifi;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -158,7 +152,7 @@ public class ItemListActivity extends AppCompatActivity {
                                 priority = 3;
                                 break;
                         }
-                        final TodoItem todoItem = new TodoItem(taskName + String.valueOf(priority), taskName, false, priority, taskDescription);
+                        final TodoItem todoItem = new TodoItem(taskName + taskDescription, taskName, false, priority, taskDescription);
                         addItem(todoItem);
                        adapter.notifyDataSetChanged();
                     }
@@ -211,7 +205,16 @@ public class ItemListActivity extends AppCompatActivity {
 
             }
         });
+    }
 
+    public void removeTask(View view) {
 
+        for (int i = ITEMS.size() - 1; i >= 0; i--) {
+            if (ITEMS.get(i).done) {
+                ITEMS.remove(i);
+            }
+        }
+
+        adapter.notifyDataSetChanged();
     }
 }
