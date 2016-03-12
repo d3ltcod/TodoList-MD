@@ -15,7 +15,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.TextView;
-
 import java.util.List;
 import adam.dam2.iesebre.com.todolistmd.ItemDetailActivity;
 import adam.dam2.iesebre.com.todolistmd.ItemDetailFragment;

@@ -1,10 +1,7 @@
 package adam.dam2.iesebre.com.todolistmd;
 
-import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Color;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -14,27 +11,16 @@ import android.support.v7.widget.Toolbar;
 import android.support.design.widget.FloatingActionButton;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
-import android.widget.ListView;
 import android.widget.RadioGroup;
-import android.widget.Toast;
-
 import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.google.gson.Gson;
-import com.google.gson.JsonArray;
 import com.google.gson.reflect.TypeToken;
-import com.koushikdutta.async.future.FutureCallback;
-import com.koushikdutta.ion.Ion;
-
 import java.lang.reflect.Type;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-
 import adam.dam2.iesebre.com.todolistmd.Adapters.ListAdapter;
 import adam.dam2.iesebre.com.todolistmd.Models.TodoItem;
 
@@ -48,12 +34,14 @@ import adam.dam2.iesebre.com.todolistmd.Models.TodoItem;
  */
 public class ItemListActivity extends AppCompatActivity {
 
+    private static final String TODO_LIST = "todo_list_master_detail";
+    private static final String SHARED_PREFERENCES_TODOS = "SP_TODO_LIST_MD";
     /**
      * Whether or not the activity is in two-pane mode, i.e. running on a tablet
      * device.
      */
     public static boolean mTwoPane;
-    public static final List<TodoItem> ITEMS = new ArrayList<TodoItem>();
+    public static TodoArrayList items;
     public static final Map<String, TodoItem> ITEM_MAP = new HashMap<String, TodoItem>();
     private View positiveAction;
     private String taskName;
@@ -62,13 +50,13 @@ public class ItemListActivity extends AppCompatActivity {
     private Gson gson;
     private ListAdapter adapter;
     private SwipeRefreshLayout swipeContainer;
+    private SharedPreferences todosSharedPreference;
+    private String todoList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_item_list);
-
-        //TODO
 
         swipeContainer = (SwipeRefreshLayout) findViewById(R.id.swipeContainer);
         swipeContainer.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
@@ -78,7 +66,7 @@ public class ItemListActivity extends AppCompatActivity {
                 // Make sure you call swipeContainer.setRefreshing(false)
                 // once the network request has completed successfully.
 
-                //TODO
+                loadTask();
             }
         });
         swipeContainer.setColorSchemeResources(android.R.color.holo_blue_bright,
@@ -86,18 +74,14 @@ public class ItemListActivity extends AppCompatActivity {
                 android.R.color.holo_orange_light,
                 android.R.color.holo_red_light);
 
+        loadTask();
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         toolbar.setTitle(getTitle());
 
         FloatingActionButton fabrm = (FloatingActionButton) findViewById(R.id.fabremove);
         FloatingActionButton fabadd = (FloatingActionButton) findViewById(R.id.fabadd);
-
-        adapter = new ListAdapter(ITEMS, this);
-
-        View recyclerView = findViewById(R.id.item_list);
-        assert recyclerView != null;
-        setupRecyclerView((RecyclerView) recyclerView);
 
         if (findViewById(R.id.item_detail_container) != null) {
             // The detail container view will be present only in the
@@ -108,12 +92,67 @@ public class ItemListActivity extends AppCompatActivity {
         }
     }
 
+    private void loadTask() {
+        swipeContainer.setRefreshing(false);
+
+        // Restore preferences
+        todosSharedPreference = getSharedPreferences(SHARED_PREFERENCES_TODOS, 0);
+        todoList = todosSharedPreference.getString(TODO_LIST, null);
+
+        if (todoList == null) {
+            String initial_json = "[{\"id\":\"Example task ID\", name:\"Example task\", \"done\": false, \"priority\": 2, \"description\":\"Example task description\"}]";
+            SharedPreferences.Editor editor = todosSharedPreference.edit();
+            editor.putString(TODO_LIST, initial_json);
+            editor.commit();
+            todoList = todosSharedPreference.getString(TODO_LIST, null);
+        }
+        updateJson();
+    }
+
+    public void updateJson(){
+        Type arrayTodoList = new TypeToken<TodoArrayList>() {}.getType();
+        this.gson = new Gson();
+        TodoArrayList temp = gson.fromJson(todoList, arrayTodoList);
+
+        if (temp != null) {
+            items = temp;
+
+        } else {
+            //Error TODO
+        }
+
+        adapter = new ListAdapter(items, this);
+
+        View recyclerView = findViewById(R.id.item_list);
+        assert recyclerView != null;
+        setupRecyclerView((RecyclerView) recyclerView);
+
+        swipeContainer.setRefreshing(false);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+        //When stop app save tasks
+        if (items == null) {
+            return;
+        }
+
+        String tasksToSave = gson.toJson(items);
+
+        SharedPreferences todosSharedPreferences = getSharedPreferences(SHARED_PREFERENCES_TODOS, 0);
+        SharedPreferences.Editor editor = todosSharedPreferences.edit();
+        editor.putString(TODO_LIST, tasksToSave);
+        editor.apply();
+    }
+
     private void setupRecyclerView(@NonNull RecyclerView recyclerView) {
         recyclerView.setAdapter(adapter);
     }
 
     private static void addItem(TodoItem item) {
-        ITEMS.add(item);
+        items.add(item);
         ITEM_MAP.put(item.id, item);
     }
 
@@ -154,7 +193,7 @@ public class ItemListActivity extends AppCompatActivity {
                         }
                         final TodoItem todoItem = new TodoItem(taskName + taskDescription, taskName, false, priority, taskDescription);
                         addItem(todoItem);
-                       adapter.notifyDataSetChanged();
+                        adapter.notifyDataSetChanged();
                     }
                 }).
 
@@ -209,9 +248,9 @@ public class ItemListActivity extends AppCompatActivity {
 
     public void removeTask(View view) {
 
-        for (int i = ITEMS.size() - 1; i >= 0; i--) {
-            if (ITEMS.get(i).done) {
-                ITEMS.remove(i);
+        for (int i = items.size() - 1; i >= 0; i--) {
+            if (items.get(i).done) {
+                items.remove(i);
             }
         }
 
