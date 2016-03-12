@@ -3,6 +3,9 @@ package adam.dam2.iesebre.com.todolistmd.Adapters;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.ColorStateList;
+import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.support.v7.widget.RecyclerView;
@@ -23,6 +26,9 @@ import adam.dam2.iesebre.com.todolistmd.R;
 public class ListAdapter extends RecyclerView.Adapter<TodoListViewHolder> {
     private final List<TodoItem> mValues;
     private final FragmentActivity activity;
+    int urgentColor = Color.parseColor("#fe0000");
+    int mediumColor = Color.parseColor("#0099ff");
+    int notUrgentColor = Color.parseColor("#00ff19");
 
     public ListAdapter(List<TodoItem> items, Activity activity) {
         mValues = items;
@@ -40,6 +46,27 @@ public class ListAdapter extends RecyclerView.Adapter<TodoListViewHolder> {
     public void onBindViewHolder(final TodoListViewHolder holder, int position) {
         holder.mItem = mValues.get(position);
         holder.mContentView.setText(mValues.get(position).name);
+        holder.mDoneView.setChecked(mValues.get(position).done);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            switch (mValues.get(position).priority){
+                case 1: holder.mDoneView.setButtonTintList(ColorStateList.valueOf(urgentColor));
+                    break;
+                case 2: holder.mDoneView.setButtonTintList(ColorStateList.valueOf(mediumColor));
+                    break;
+                case 3: holder.mDoneView.setButtonTintList(ColorStateList.valueOf(notUrgentColor));
+                    break;
+            }
+        } else {
+            switch (mValues.get(position).priority){
+                case 1: holder.mDoneView.setBackgroundColor(urgentColor);
+                    break;
+                case 2: holder.mDoneView.setBackgroundColor(mediumColor);
+                    break;
+                case 3: holder.mDoneView.setBackgroundColor(notUrgentColor);
+                    break;
+            }
+        }
 
         holder.mView.setOnClickListener(new View.OnClickListener() {
             @Override
