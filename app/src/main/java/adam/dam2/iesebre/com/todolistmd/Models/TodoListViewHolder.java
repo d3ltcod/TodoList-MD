@@ -5,7 +5,6 @@ import android.view.View;
 import android.widget.CheckBox;
 import android.widget.TextView;
 import adam.dam2.iesebre.com.todolistmd.R;
-import adam.dam2.iesebre.com.todolistmd.dummy.DummyContent;
 
 /**
  * Created by adam on 12/03/16.
@@ -15,7 +14,7 @@ public class TodoListViewHolder extends RecyclerView.ViewHolder {
     public final View mView;
     public final TextView mContentView;
     public final CheckBox mDoneView;
-    public DummyContent.DummyItem mItem;
+    public TodoItem mItem;
 
     public TodoListViewHolder(View view) {
         super(view);

@@ -1,16 +1,42 @@
 package adam.dam2.iesebre.com.todolistmd;
 
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.graphics.Color;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.util.Log;
 import android.view.View;
-import adam.dam2.iesebre.com.todolistmd.Adapters.ListAdapter;
-import adam.dam2.iesebre.com.todolistmd.dummy.DummyContent;
+import android.widget.EditText;
+import android.widget.ListView;
+import android.widget.RadioGroup;
+import android.widget.Toast;
 
+import com.afollestad.materialdialogs.DialogAction;
+import com.afollestad.materialdialogs.MaterialDialog;
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.reflect.TypeToken;
+import com.koushikdutta.async.future.FutureCallback;
+import com.koushikdutta.ion.Ion;
+
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import adam.dam2.iesebre.com.todolistmd.Adapters.ListAdapter;
+import adam.dam2.iesebre.com.todolistmd.Models.TodoItem;
 
 /**
  * An activity representing a list of Items. This activity
@@ -27,33 +53,53 @@ public class ItemListActivity extends AppCompatActivity {
      * device.
      */
     public static boolean mTwoPane;
+    public static final List<TodoItem> ITEMS = new ArrayList<TodoItem>();
+    public static final Map<String, TodoItem> ITEM_MAP = new HashMap<String, TodoItem>();
+    private static final String SHARED_PREFERENCES_TODOS = "SP_TODOS";
+    private static final String TODO_LIST = "todo_list";
+    private View positiveAction;
+    private String taskName;
+    private String taskDescription;
+    private int priority;
+    private Gson gson;
+    private ListAdapter adapter;
+    private SwipeRefreshLayout swipeContainer;
+    private String todoList;
+    private SharedPreferences todosSharedPreference;
+    private NetworkInfo networkInfo;
+    private boolean networkInfoWifi;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_item_list);
 
+        //TODO
+
+        swipeContainer = (SwipeRefreshLayout) findViewById(R.id.swipeContainer);
+        swipeContainer.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                // Your code to refresh the list here.
+                // Make sure you call swipeContainer.setRefreshing(false)
+                // once the network request has completed successfully.
+
+                //TODO
+            }
+        });
+        swipeContainer.setColorSchemeResources(android.R.color.holo_blue_bright,
+                android.R.color.holo_green_light,
+                android.R.color.holo_orange_light,
+                android.R.color.holo_red_light);
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         toolbar.setTitle(getTitle());
 
         FloatingActionButton fabrm = (FloatingActionButton) findViewById(R.id.fabremove);
-        fabrm.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Remove", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
-
         FloatingActionButton fabadd = (FloatingActionButton) findViewById(R.id.fabadd);
-        fabadd.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Add", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
+
+        adapter = new ListAdapter(ITEMS, this);
 
         View recyclerView = findViewById(R.id.item_list);
         assert recyclerView != null;
@@ -69,6 +115,103 @@ public class ItemListActivity extends AppCompatActivity {
     }
 
     private void setupRecyclerView(@NonNull RecyclerView recyclerView) {
-        recyclerView.setAdapter(new ListAdapter(DummyContent.ITEMS, this));
+        recyclerView.setAdapter(adapter);
+    }
+
+    private static void addItem(TodoItem item) {
+        ITEMS.add(item);
+        ITEM_MAP.put(item.id, item);
+    }
+
+    public void showAddForm(View view) {
+
+        taskName = " ";
+        taskDescription = " ";
+        priority = 2;
+
+        final EditText taskNameText;
+        final EditText taskDescriptionText;
+
+        MaterialDialog dialog = new MaterialDialog.Builder(this).
+                title("Add new Task").
+                customView(R.layout.form_add_task, true).
+                negativeText("Cancel").
+                positiveText("Add").
+                negativeColor(Color.parseColor("#ff3333")).
+                positiveColor(Color.parseColor("#2196F3")).
+                onPositive(new MaterialDialog.SingleButtonCallback() {
+
+                    @Override
+                    public void onClick(MaterialDialog dialog, DialogAction which) {
+
+                        // Task priority
+                        RadioGroup taskPriority = (RadioGroup) dialog.findViewById(R.id.task_priority);
+
+                        switch (taskPriority.getCheckedRadioButtonId()) {
+                            case R.id.task_priority_urgent:
+                                priority = 1;
+                                break;
+                            case R.id.task_priority_important_not_urgent:
+                                priority = 2;
+                                break;
+                            case R.id.task_priority_not_urgent:
+                                priority = 3;
+                                break;
+                        }
+                        final TodoItem todoItem = new TodoItem(taskName + String.valueOf(priority), taskName, false, priority, taskDescription);
+                        addItem(todoItem);
+                       adapter.notifyDataSetChanged();
+                    }
+                }).
+
+
+                build();
+
+        dialog.show();
+
+        taskNameText = (EditText) dialog.getCustomView().findViewById(R.id.task_tittle);
+        taskDescriptionText = (EditText) dialog.getCustomView().findViewById(R.id.task_description);
+
+        positiveAction = dialog.getActionButton(DialogAction.POSITIVE);
+        positiveAction.setEnabled(false);
+
+        taskNameText.addTextChangedListener(new TextWatcher() {
+
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                taskName = s.toString();
+                positiveAction.setEnabled(taskName.trim().length() > 0);
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        });
+
+        taskDescriptionText.addTextChangedListener(new TextWatcher() {
+
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                taskDescription = s.toString();
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        });
+
+
     }
 }

@@ -13,18 +13,18 @@ import java.util.List;
 import adam.dam2.iesebre.com.todolistmd.ItemDetailActivity;
 import adam.dam2.iesebre.com.todolistmd.ItemDetailFragment;
 import adam.dam2.iesebre.com.todolistmd.ItemListActivity;
+import adam.dam2.iesebre.com.todolistmd.Models.TodoItem;
 import adam.dam2.iesebre.com.todolistmd.Models.TodoListViewHolder;
 import adam.dam2.iesebre.com.todolistmd.R;
-import adam.dam2.iesebre.com.todolistmd.dummy.DummyContent;
 
 /**
  * Created by adam on 12/03/16.
  */
 public class ListAdapter extends RecyclerView.Adapter<TodoListViewHolder> {
-    private final List<DummyContent.DummyItem> mValues;
+    private final List<TodoItem> mValues;
     private final FragmentActivity activity;
 
-    public ListAdapter(List<DummyContent.DummyItem> items, Activity activity) {
+    public ListAdapter(List<TodoItem> items, Activity activity) {
         mValues = items;
         this.activity =(FragmentActivity) activity;
     }
@@ -39,7 +39,7 @@ public class ListAdapter extends RecyclerView.Adapter<TodoListViewHolder> {
     @Override
     public void onBindViewHolder(final TodoListViewHolder holder, int position) {
         holder.mItem = mValues.get(position);
-        holder.mContentView.setText(mValues.get(position).content);
+        holder.mContentView.setText(mValues.get(position).name);
 
         holder.mView.setOnClickListener(new View.OnClickListener() {
             @Override
