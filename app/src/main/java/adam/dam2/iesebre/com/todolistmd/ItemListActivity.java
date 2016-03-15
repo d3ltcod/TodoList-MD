@@ -18,9 +18,13 @@ import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+
 import adam.dam2.iesebre.com.todolistmd.Adapters.ListAdapter;
 import adam.dam2.iesebre.com.todolistmd.Models.TodoItem;
 
@@ -34,15 +38,15 @@ import adam.dam2.iesebre.com.todolistmd.Models.TodoItem;
  */
 public class ItemListActivity extends AppCompatActivity {
 
-    private static final String TODO_LIST = "todo_list_master_detail";
-    private static final String SHARED_PREFERENCES_TODOS = "SP_TODO_LIST_MD";
+    private static final String SHARED_PREFERENCES_TODOS = "SP_TODOLIST_MD";
+    private static final String TODO_LIST = "todo_list_md";
     /**
      * Whether or not the activity is in two-pane mode, i.e. running on a tablet
      * device.
      */
     public static boolean mTwoPane;
-    public static TodoArrayList items;
-    public static final Map<String, TodoItem> ITEM_MAP = new HashMap<String, TodoItem>();
+    public static List<TodoItem> items = new ArrayList<TodoItem>();
+    public static Map<String, TodoItem> item_map = new HashMap<String, TodoItem>();
     private View positiveAction;
     private String taskName;
     private String taskDescription;
@@ -50,13 +54,15 @@ public class ItemListActivity extends AppCompatActivity {
     private Gson gson;
     private ListAdapter adapter;
     private SwipeRefreshLayout swipeContainer;
-    private SharedPreferences todosSharedPreference;
-    private String todoList;
+    private SharedPreferences todoSharedPreference;
+    private String todoListJson;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_item_list);
+
+        gson = new Gson();
 
         swipeContainer = (SwipeRefreshLayout) findViewById(R.id.swipeContainer);
         swipeContainer.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
@@ -66,7 +72,7 @@ public class ItemListActivity extends AppCompatActivity {
                 // Make sure you call swipeContainer.setRefreshing(false)
                 // once the network request has completed successfully.
 
-                loadTask();
+                loadTasks();
             }
         });
         swipeContainer.setColorSchemeResources(android.R.color.holo_blue_bright,
@@ -74,7 +80,7 @@ public class ItemListActivity extends AppCompatActivity {
                 android.R.color.holo_orange_light,
                 android.R.color.holo_red_light);
 
-        loadTask();
+        loadTasks();
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -82,6 +88,12 @@ public class ItemListActivity extends AppCompatActivity {
 
         FloatingActionButton fabrm = (FloatingActionButton) findViewById(R.id.fabremove);
         FloatingActionButton fabadd = (FloatingActionButton) findViewById(R.id.fabadd);
+
+        adapter = new ListAdapter(items, this);
+
+        View recyclerView = findViewById(R.id.item_list);
+        assert recyclerView != null;
+        setupRecyclerView((RecyclerView) recyclerView);
 
         if (findViewById(R.id.item_detail_container) != null) {
             // The detail container view will be present only in the
@@ -92,57 +104,19 @@ public class ItemListActivity extends AppCompatActivity {
         }
     }
 
-    private void loadTask() {
-        swipeContainer.setRefreshing(false);
-
-        // Restore preferences
-        todosSharedPreference = getSharedPreferences(SHARED_PREFERENCES_TODOS, 0);
-        todoList = todosSharedPreference.getString(TODO_LIST, null);
-
-        if (todoList == null) {
-            String initial_json = "[{\"id\":\"Example task ID\", name:\"Example task\", \"done\": false, \"priority\": 2, \"description\":\"Example task description\"}]";
-            SharedPreferences.Editor editor = todosSharedPreference.edit();
-            editor.putString(TODO_LIST, initial_json);
-            editor.commit();
-            todoList = todosSharedPreference.getString(TODO_LIST, null);
-        }
-        updateJson();
-    }
-
-    public void updateJson(){
-        Type arrayTodoList = new TypeToken<TodoArrayList>() {}.getType();
-        this.gson = new Gson();
-        TodoArrayList temp = gson.fromJson(todoList, arrayTodoList);
-
-        if (temp != null) {
-            items = temp;
-
-        } else {
-            //Error TODO
-        }
-
-        adapter = new ListAdapter(items, this);
-
-        View recyclerView = findViewById(R.id.item_list);
-        assert recyclerView != null;
-        setupRecyclerView((RecyclerView) recyclerView);
-
-        swipeContainer.setRefreshing(false);
-    }
-
     @Override
     protected void onStop() {
         super.onStop();
 
         //When stop app save tasks
-        if (items == null) {
+        if (item_map == null) {
             return;
         }
 
-        String tasksToSave = gson.toJson(items);
+        String tasksToSave = gson.toJson(item_map);
 
-        SharedPreferences todosSharedPreferences = getSharedPreferences(SHARED_PREFERENCES_TODOS, 0);
-        SharedPreferences.Editor editor = todosSharedPreferences.edit();
+        SharedPreferences todos = getSharedPreferences(SHARED_PREFERENCES_TODOS, 0);
+        SharedPreferences.Editor editor = todos.edit();
         editor.putString(TODO_LIST, tasksToSave);
         editor.apply();
     }
@@ -151,9 +125,47 @@ public class ItemListActivity extends AppCompatActivity {
         recyclerView.setAdapter(adapter);
     }
 
+    public void loadTasks(){
+
+        swipeContainer.setRefreshing(false);
+        // Restore preferences
+        todoSharedPreference = getSharedPreferences(SHARED_PREFERENCES_TODOS, 0);
+        todoListJson = todoSharedPreference.getString(TODO_LIST, null);
+
+        if (todoListJson == null) {
+            adapter = new ListAdapter(items, this);
+
+            View recyclerView = findViewById(R.id.item_list);
+            assert recyclerView != null;
+            setupRecyclerView((RecyclerView) recyclerView);
+
+            swipeContainer.setRefreshing(false);
+        } else {
+            updateTasks();
+        }
+
+    }
+
+
+    public void updateTasks(){
+        Type itemsTodoList = new TypeToken<TodoMapList>() {}.getType();
+
+        TodoMapList temp = gson.fromJson(todoListJson, itemsTodoList);
+
+        if (temp != null) {
+
+            item_map = temp;
+            items.clear();
+            items.addAll(item_map.values());
+
+        } else {
+            //Error TODO
+        }
+    }
+
     private static void addItem(TodoItem item) {
         items.add(item);
-        ITEM_MAP.put(item.id, item);
+        item_map.put(item.id, item);
     }
 
     public void showAddForm(View view) {
@@ -249,7 +261,8 @@ public class ItemListActivity extends AppCompatActivity {
     public void removeTask(View view) {
 
         for (int i = items.size() - 1; i >= 0; i--) {
-            if (items.get(i).done) {
+            if (items.get(i).done == true) {
+                item_map.remove(items.get(i).id);
                 items.remove(i);
             }
         }
