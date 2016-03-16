@@ -52,7 +52,7 @@ public class ItemListActivity extends AppCompatActivity {
     private String taskDescription;
     private int priority;
     private Gson gson;
-    private ListAdapter adapter;
+    public static ListAdapter adapter;
     private SwipeRefreshLayout swipeContainer;
     private SharedPreferences todoSharedPreference;
     private String todoListJson;
@@ -88,12 +88,6 @@ public class ItemListActivity extends AppCompatActivity {
 
         FloatingActionButton fabrm = (FloatingActionButton) findViewById(R.id.fabremove);
         FloatingActionButton fabadd = (FloatingActionButton) findViewById(R.id.fabadd);
-
-        adapter = new ListAdapter(items, this);
-
-        View recyclerView = findViewById(R.id.item_list);
-        assert recyclerView != null;
-        setupRecyclerView((RecyclerView) recyclerView);
 
         if (findViewById(R.id.item_detail_container) != null) {
             // The detail container view will be present only in the
@@ -161,6 +155,14 @@ public class ItemListActivity extends AppCompatActivity {
         } else {
             //Error TODO
         }
+
+        adapter = new ListAdapter(items, this);
+
+        View recyclerView = findViewById(R.id.item_list);
+        assert recyclerView != null;
+        setupRecyclerView((RecyclerView) recyclerView);
+
+        swipeContainer.setRefreshing(false);
     }
 
     private static void addItem(TodoItem item) {
