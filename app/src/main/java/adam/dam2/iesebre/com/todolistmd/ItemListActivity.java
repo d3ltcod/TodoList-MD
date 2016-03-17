@@ -21,7 +21,7 @@ import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -46,7 +46,7 @@ public class ItemListActivity extends AppCompatActivity {
      */
     public static boolean mTwoPane;
     public static List<TodoItem> items = new ArrayList<TodoItem>();
-    public static Map<String, TodoItem> item_map = new HashMap<String, TodoItem>();
+    public static Map<String, TodoItem> item_map = new LinkedHashMap<String, TodoItem>();
     private View positiveAction;
     private String taskName;
     private String taskDescription;

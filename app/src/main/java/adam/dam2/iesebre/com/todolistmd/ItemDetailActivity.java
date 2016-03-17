@@ -100,6 +100,8 @@ public class ItemDetailActivity extends AppCompatActivity {
         final EditText taskDescriptionText;
         RadioGroup checkPriority;
         itemSelected = ItemListActivity.item_map.get(arguments.getString(ItemDetailFragment.ARG_ITEM_ID));
+        taskName = itemSelected.name;
+        taskDescription = itemSelected.description;
 
         MaterialDialog dialog = new MaterialDialog.Builder(this).
                 title("Update Task").
@@ -113,8 +115,6 @@ public class ItemDetailActivity extends AppCompatActivity {
                     @Override
                     public void onClick(MaterialDialog dialog, DialogAction which) {
 
-                        taskName = itemSelected.name;
-                        taskDescription = itemSelected.description;
 
                         // Task priority
                         RadioGroup taskPriority = (RadioGroup) dialog.findViewById(R.id.task_priority);
@@ -163,6 +163,7 @@ public class ItemDetailActivity extends AppCompatActivity {
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 taskName = s.toString();
                 positiveAction.setEnabled(taskName.trim().length() > 0);
+                System.out.println(taskName);
             }
 
             @Override
