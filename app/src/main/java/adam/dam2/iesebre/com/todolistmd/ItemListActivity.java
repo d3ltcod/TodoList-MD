@@ -38,8 +38,8 @@ import adam.dam2.iesebre.com.todolistmd.Models.TodoItem;
  */
 public class ItemListActivity extends AppCompatActivity {
 
-    private static final String SHARED_PREFERENCES_TODOS = "SP_TODOLIST_MD";
-    private static final String TODO_LIST = "todo_list_md";
+    public static final String SHARED_PREFERENCES_TODOS = "SP_TODOLIST_MD";
+    public static final String TODO_LIST = "todo_list_md";
     /**
      * Whether or not the activity is in two-pane mode, i.e. running on a tablet
      * device.
@@ -51,7 +51,7 @@ public class ItemListActivity extends AppCompatActivity {
     private String taskName;
     private String taskDescription;
     private int priority;
-    private Gson gson;
+    public static Gson gson;
     public static ListAdapter adapter;
     private SwipeRefreshLayout swipeContainer;
     private SharedPreferences todoSharedPreference;
@@ -115,6 +115,12 @@ public class ItemListActivity extends AppCompatActivity {
         editor.apply();
     }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+        loadTasks();
+    }
+
     private void setupRecyclerView(@NonNull RecyclerView recyclerView) {
         recyclerView.setAdapter(adapter);
     }
@@ -165,12 +171,19 @@ public class ItemListActivity extends AppCompatActivity {
         swipeContainer.setRefreshing(false);
     }
 
-    private static void addItem(TodoItem item) {
+    public static void addItem(TodoItem item) {
         items.add(item);
         item_map.put(item.id, item);
+        adapter.notifyDataSetChanged();
     }
 
-    public void showAddForm(View view) {
+    public static void updateItem(String id, TodoItem item) {
+        item_map.remove(id);
+        item_map.put(item.id, item);
+        adapter.notifyDataSetChanged();
+    }
+
+    public void addTask(View view) {
 
         taskName = " ";
         taskDescription = " ";
@@ -207,7 +220,6 @@ public class ItemListActivity extends AppCompatActivity {
                         }
                         final TodoItem todoItem = new TodoItem(taskName + taskDescription, taskName, false, priority, taskDescription);
                         addItem(todoItem);
-                        adapter.notifyDataSetChanged();
                     }
                 }).
 

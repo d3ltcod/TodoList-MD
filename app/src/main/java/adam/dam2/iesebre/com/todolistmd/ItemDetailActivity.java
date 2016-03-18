@@ -1,6 +1,7 @@
 package adam.dam2.iesebre.com.todolistmd;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -94,6 +95,21 @@ public class ItemDetailActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    private void save(){
+        //When stop app save tasks
+        if (ItemListActivity.item_map == null) {
+            return;
+        }
+
+        String tasksToSave = ItemListActivity.gson.toJson(ItemListActivity.item_map);
+
+        SharedPreferences todos = getSharedPreferences(ItemListActivity.SHARED_PREFERENCES_TODOS, 0);
+        SharedPreferences.Editor editor = todos.edit();
+        editor.putString(ItemListActivity.TODO_LIST, tasksToSave);
+        editor.apply();
+        onBackPressed();
+    }
+
     public void editTask() {
 
         final EditText taskNameText;
@@ -131,7 +147,9 @@ public class ItemDetailActivity extends AppCompatActivity {
                                 break;
                         }
 
-                        ItemListActivity.adapter.notifyDataSetChanged();
+                        TodoItem todoItem = new TodoItem(taskName + taskDescription, taskName, false, priority, taskDescription);
+                        ItemListActivity.updateItem(itemSelected.id, todoItem);
+                        save();
                     }
                 }).
 
@@ -163,7 +181,6 @@ public class ItemDetailActivity extends AppCompatActivity {
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 taskName = s.toString();
                 positiveAction.setEnabled(taskName.trim().length() > 0);
-                System.out.println(taskName);
             }
 
             @Override
