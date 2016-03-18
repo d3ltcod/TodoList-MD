@@ -147,7 +147,7 @@ public class ItemDetailActivity extends AppCompatActivity {
                                 break;
                         }
 
-                        TodoItem todoItem = new TodoItem(taskName + taskDescription, taskName, false, priority, taskDescription);
+                        TodoItem todoItem = new TodoItem(taskName + taskDescription, taskName, itemSelected.done, priority, taskDescription);
                         ItemListActivity.updateItem(itemSelected.id, todoItem);
                         save();
                     }
