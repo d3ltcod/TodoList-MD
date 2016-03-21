@@ -29,10 +29,18 @@
         tools:context="adam.dam2.iesebre.com.todolistmd.ItemListActivity"
         tools:listitem="@layout/item_list_content" />
 
+    <android.support.v4.widget.SwipeRefreshLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/swipeContainer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
     <FrameLayout
         android:id="@+id/item_detail_container"
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_weight="3" />
+
+    </android.support.v4.widget.SwipeRefreshLayout>
 
 </LinearLayout>

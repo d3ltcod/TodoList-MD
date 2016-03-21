@@ -100,6 +100,8 @@ public class ItemListActivity extends AppCompatActivity {
     protected void onStop() {
         super.onStop();
 
+        mTwoPane = false;
+
         //When stop app save tasks
         if (item_map == null) {
             return;
@@ -137,7 +139,6 @@ public class ItemListActivity extends AppCompatActivity {
             assert recyclerView != null;
             setupRecyclerView((RecyclerView) recyclerView);
 
-            swipeContainer.setRefreshing(false);
         } else {
             updateTasks();
         }
@@ -166,7 +167,6 @@ public class ItemListActivity extends AppCompatActivity {
         assert recyclerView != null;
         setupRecyclerView((RecyclerView) recyclerView);
 
-        swipeContainer.setRefreshing(false);
     }
 
     public static void addItem(TodoItem item) {
