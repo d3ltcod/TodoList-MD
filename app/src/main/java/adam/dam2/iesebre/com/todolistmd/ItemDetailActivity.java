@@ -27,11 +27,6 @@ import adam.dam2.iesebre.com.todolistmd.Models.TodoItem;
  */
 public class ItemDetailActivity extends AppCompatActivity {
 
-    private int priority;
-    private View positiveAction;
-    private String taskName;
-    private String taskDescription;
-    private TodoItem itemSelected;
     Bundle arguments;
 
     @Override
@@ -45,7 +40,7 @@ public class ItemDetailActivity extends AppCompatActivity {
         fabedit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                editTask();
+            ItemDetailFragment.editTask(view, ItemListActivity.item_map.get(arguments.getString(ItemDetailFragment.ARG_ITEM_ID)));
             }
         });
 
@@ -77,130 +72,5 @@ public class ItemDetailActivity extends AppCompatActivity {
             return true;
         }
         return super.onOptionsItemSelected(item);
-    }
-
-    private void save(){
-        //When stop save tasks
-        if (ItemListActivity.item_map == null) {
-            return;
-        }
-
-        String tasksToSave = ItemListActivity.gson.toJson(ItemListActivity.item_map);
-
-        SharedPreferences todos = getSharedPreferences(ItemListActivity.SHARED_PREFERENCES_TODOS, 0);
-        SharedPreferences.Editor editor = todos.edit();
-        editor.putString(ItemListActivity.TODO_LIST, tasksToSave);
-        editor.apply();
-        onBackPressed();
-    }
-
-    public void editTask() {
-
-        final EditText taskNameText;
-        final EditText taskDescriptionText;
-        RadioGroup checkPriority;
-        itemSelected = ItemListActivity.item_map.get(arguments.getString(ItemDetailFragment.ARG_ITEM_ID));
-        taskName = itemSelected.name;
-        taskDescription = itemSelected.description;
-
-        MaterialDialog dialog = new MaterialDialog.Builder(this).
-                title("Update Task").
-                customView(R.layout.form_add_task, true).
-                negativeText("Cancel").
-                positiveText("Update").
-                negativeColor(Color.parseColor("#ff3333")).
-                positiveColor(Color.parseColor("#2196F3")).
-                onPositive(new MaterialDialog.SingleButtonCallback() {
-
-                    @Override
-                    public void onClick(MaterialDialog dialog, DialogAction which) {
-
-
-                        // Task priority
-                        RadioGroup taskPriority = (RadioGroup) dialog.findViewById(R.id.task_priority);
-
-                        switch (taskPriority.getCheckedRadioButtonId()) {
-                            case R.id.task_priority_urgent:
-                                priority = 1;
-                                break;
-                            case R.id.task_priority_important_not_urgent:
-                                priority = 2;
-                                break;
-                            case R.id.task_priority_not_urgent:
-                                priority = 3;
-                                break;
-                        }
-
-                        TodoItem todoItem = new TodoItem(taskName + taskDescription, taskName, itemSelected.done, priority, taskDescription);
-                        ItemListActivity.updateItem(itemSelected.id, todoItem);
-                        save();
-                    }
-                }).
-
-
-                build();
-
-        dialog.show();
-
-        taskNameText = (EditText) dialog.getCustomView().findViewById(R.id.task_tittle);
-        taskDescriptionText = (EditText) dialog.getCustomView().findViewById(R.id.task_description);
-
-        taskNameText.append(itemSelected.name);
-        taskName = taskNameText.getText().toString();
-
-        taskDescriptionText.append(itemSelected.description);
-        taskDescription = taskDescriptionText.getText().toString();
-
-        positiveAction = dialog.getActionButton(DialogAction.POSITIVE);
-        positiveAction.setEnabled(false);
-
-        taskNameText.addTextChangedListener(new TextWatcher() {
-
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                taskName = s.toString();
-                positiveAction.setEnabled(taskName.trim().length() > 0);
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-
-            }
-        });
-
-        taskDescriptionText.addTextChangedListener(new TextWatcher() {
-
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                taskDescription = s.toString();
-                positiveAction.setEnabled(taskDescription.trim().length() > 0);
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-
-            }
-        });
-
-        checkPriority = (RadioGroup) dialog.getCustomView().findViewById(R.id.task_priority);
-        if (itemSelected.priority == 1){checkPriority.check(R.id.task_priority_urgent);}
-        if (itemSelected.priority == 2){checkPriority.check(R.id.task_priority_important_not_urgent);}
-        if (itemSelected.priority == 3){checkPriority.check(R.id.task_priority_not_urgent);}
-
-        checkPriority.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
-            public void onCheckedChanged(RadioGroup taskPriority, int checkedId) {
-                positiveAction.setEnabled(true);
-            }
-        });
     }
 }
